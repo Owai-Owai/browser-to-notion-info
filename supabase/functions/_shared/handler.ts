@@ -6,6 +6,7 @@ import { connectionSchema,okSchema,rpc,type Repository } from "./repository.ts";
 import { notionClient } from "./notion.ts";
 import { syncBookmark } from "./sync.ts";
 import type { EdgeConfig } from "./config.ts";
+import { captureUsage } from "./analytics.ts";
 
 async function readBody(request: Request): Promise<unknown> {
   if (Number(request.headers.get("content-length"))>256_000) throw new ApiError(413,{ code: "validation",message: "This request is too large." });
@@ -87,6 +88,7 @@ export function createHandler(config: EdgeConfig,repository: Repository,transpor
       }
       if (!session) throw new ApiError(401,{ code: "auth",message: "Reconnect Notion to continue." });
       const connection = await rpc(repository,"authenticate",{ session_hash: await hash(session) },connectionSchema);
+      if (path === "/v1/analytics") return json(200, await captureUsage(config, repository, connection.id, body, transport));
       if (path === "/v1/destinations") {
         const input = z.object({ link: z.string().max(4000) }).parse(body);
         return json(200,await notion.resolveDestinations(connection,input.link));

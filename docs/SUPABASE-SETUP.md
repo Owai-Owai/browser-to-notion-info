@@ -100,6 +100,8 @@ This enables `pg_cron` and schedules hourly removal of expired flows/locks/rate-
 
 ## 6. Set secrets and deploy
 
+For version 0.1.3, finish [the optional analytics activation steps](ANALYTICS.md) as well. The new service-only migration is `202611180002_usage_rate_limit.sql`. Set `POSTHOG_PROJECT_TOKEN` and `POSTHOG_HOST` only after the dedicated project is confirmed. The capture token stays in the service environment. Keep the current encryption key unchanged.
+
 After every field in `.env.supabase.local` is complete:
 
 ```powershell

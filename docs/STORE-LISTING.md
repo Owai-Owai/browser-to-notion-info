@@ -2,7 +2,7 @@
 
 Prepared for the hosted Browser to Notion build. Review this copy and the actual dashboard disclosures before submission.
 
-Unpublished draft ID: `aneibajfligcbdfodclcfelpgcenmojk`. Version 0.1.1 was accepted. Current replacement package: `release/browser-to-notion-public-0.1.2.zip`. Update this existing draft item with the new package.
+Unpublished draft ID: `aneibajfligcbdfodclcfelpgcenmojk`. The owner confirmed version 0.1.2 and the listing are saved. Version 0.1.3 adds optional usage sharing and is being prepared; [analytics activation](ANALYTICS.md) and updated disclosures must be verified before replacing the draft or submitting it.
 
 ## Listing copy
 
@@ -27,6 +27,8 @@ Connect your Notion account and authorize your chosen database. No local connect
 
 The extension saves bookmark information. It does not capture article content or read browsing history. Saved entries are snapshots; later bookmark edits and deletions do not change entries already saved in Notion. Chrome must be open for syncing, and pending bookmarks wait when the connection is unavailable.
 
+Optional usage sharing is off by default. If you opt in, PostHog receives feature events and save outcomes under a random installation ID, without bookmark details or Notion content. You can turn it off in Settings.
+
 ## Publisher and links
 
 - Publisher/operator: Owai
@@ -42,10 +44,10 @@ The extension saves bookmark information. It does not capture article content or
 | Permission | Justification |
 | --- | --- |
 | bookmarks | Read the browser's bookmark folder tree and eligible bookmark metadata, and detect bookmark events for the selected scope. |
-| storage | Retain local settings, selected folders, the service session, pending saves, and activity across browser sessions. |
+| storage | Retain local settings, selected folders, the service session, pending saves, activity, and optional usage-sharing consent/queued events across browser sessions. |
 | alarms | Resume pending work and reconcile bookmark changes when the extension worker wakes. |
 | identity | Use Chrome's authorization flow to connect the user's Notion account. |
-| https://vgmltpmcqulxrbjnsflj.supabase.co/* | Send authorization requests and selected bookmark metadata to the publisher's hosted connection service, which calls Notion. |
+| https://vgmltpmcqulxrbjnsflj.supabase.co/* | Send authorization requests and selected bookmark metadata to the publisher's hosted connection service, which calls Notion. If the user opts in, also send limited usage events for forwarding to PostHog. |
 
 The extension bundles its executable code. It does not download remote executable code; remote requests exchange API data.
 
@@ -67,7 +69,9 @@ Use these actual practices when completing the dashboard's data categories and c
 - Local Chrome storage retains the service session, configuration, bookmark snapshots, pending work, and activity.
 - The service retains encrypted Notion credentials, workspace identifiers/names, hashed service credentials, temporary authorization records, and a save ledger with hashed destination/website keys and Notion entry identifiers/links.
 - Provider traffic logs may include IP addresses, request URLs, and timings. Temporary connection-rate limits use an IP address or its hash.
-- There are no advertising, analytics, tracking-pixel, or data-sale features.
+- Usage sharing is off by default for all installations. Users can explicitly opt in during setup or Settings, and opt out at any time. PostHog then receives a random installation ID, event UUID/time/version, and allowlisted sync/save/import events. No bookmark details, Notion content, credentials, raw errors, session recordings, or automatic click capture are included. Mark optional feature-use data consistently with the dashboard's User activity category and explain it in the published policy.
+- Opting out clears unsent usage events and stops future collection. Previously shared events require a deletion request using the Usage data ID; disconnecting alone does not erase PostHog history.
+- There are no advertising, tracking-pixel, or data-sale features.
 - Retention and deletion behavior is described in the published privacy policy.
 
 Match the dashboard's current category descriptions to these practices. A lack of the browser `history` permission does not by itself determine how a disclosure category should be answered.
@@ -95,8 +99,9 @@ No shared reviewer account or publisher credentials are required. The hosted con
 - [x] Rebuild version 0.1.1, repeat the matching-identity checks, and create the replacement ZIP.
 - [x] Upload version 0.1.1 to the existing draft's Package tab.
 - [x] Prepare version 0.1.2 and the listing images with verified dimensions.
-- [ ] Upload `release/browser-to-notion-public-0.1.2.zip` to the existing draft's Package tab.
-- [ ] Fill the listing using the prepared copy/images, complete dashboard disclosures, and review the final listing.
+- [x] Upload version 0.1.2 and save its listing/disclosures (owner confirmed).
+- [ ] Activate and verify the dedicated PostHog project, publish the updated policy, then package and upload 0.1.3.
+- [ ] Update the saved listing/disclosures for optional analytics and review the final listing.
 - [ ] Submit the completed item for Chrome Web Store review.
 
 Uploading a draft does not publish the extension. The current ZIP updates the existing draft and is not evidence of a completed store release.

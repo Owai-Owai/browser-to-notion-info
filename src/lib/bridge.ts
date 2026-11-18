@@ -55,6 +55,7 @@ async function previewRequest(command: Command): Promise<unknown> {
     case "import": return "preview-batch";
     case "cancelImport": case "retry": break;
     case "clearHistory": state.jobs = []; break;
+    case "usage": state.usage.enabled = command.enabled; state.usage.queue = []; break;
   }
   localStorage.setItem("bns-preview", JSON.stringify(state));
 }

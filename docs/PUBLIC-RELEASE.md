@@ -1,5 +1,7 @@
 # Public release
 
+Current work: the owner confirmed version 0.1.2 and its listing were saved in the existing draft. Version 0.1.3 adds default-off optional PostHog usage sharing. Its source is prepared, but activation is pending the project choice described in [ANALYTICS.md](ANALYTICS.md). Before distributing it, verify hosted analytics, publish the revised policy, upload the replacement package, and update store disclosures. Nothing has been submitted or published to the Web Store.
+
 The chosen backend is **Supabase Edge Functions + PostgreSQL**. Follow [SUPABASE-SETUP.md](SUPABASE-SETUP.md) for project creation, secrets, migration, maintenance, deployment, privacy hosting, and the public extension build.
 
 The Supabase project, protected database, hourly cleanup, hosted service, and public privacy site are deployed. The public build and automated/live service checks pass. The owner verified a real Notion authorization and bookmark save using the initial `dist-public` build; Supabase independently recorded the connection and saved operation. An unpublished Chrome Web Store draft now exists with ID `aneibajfligcbdfodclcfelpgcenmojk`.

@@ -1,13 +1,15 @@
 import { commandSchema } from "../../shared/schema";
 import { handleCommand, pump, reconcile } from "./engine";
+import { flushUsage } from "./analytics";
 
 const initialize = async () => {
   await chrome.storage.local.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" });
   await chrome.alarms.create("bookmark-sync", { periodInMinutes: 0.5 });
   await reconcile(); await pump();
+  void flushUsage();
 };
 const run = () => {
-  void reconcile().then(pump).catch(reportError);
+  void reconcile().then(pump).then(() => { void flushUsage(); }).catch(reportError);
   // Fast path while this worker is awake; the persistent alarm is the recovery path.
   setTimeout(() => { void pump().catch(reportError); }, 2200);
 };

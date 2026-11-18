@@ -1,4 +1,5 @@
 import { appStateSchema, initialState, terminalStatuses, type AppState } from "../../shared/schema";
+import { analyticsTTL } from "../../shared/analytics";
 
 let transaction: Promise<unknown> = Promise.resolve();
 
@@ -9,6 +10,7 @@ export function updateState<T>(mutate: (state: AppState) => T | Promise<T>): Pro
     const result = await mutate(state);
     const cutoff = Date.now() - 30 * 86400_000;
     state.jobs = state.jobs.filter(job => !terminalStatuses.includes(job.status) || job.updatedAt >= cutoff);
+    state.usage.queue = state.usage.enabled ? state.usage.queue.filter(event => Date.parse(event.timestamp) > Date.now() - analyticsTTL) : [];
     await chrome.storage.local.set({ state });
     await chrome.storage.session.remove("workerError");
     return result;

@@ -8,6 +8,8 @@ First-time setup includes a [ready-made Notion template](https://owai.notion.sit
 
 For public distribution, use [Supabase setup](docs/SUPABASE-SETUP.md) and the [release guide](docs/PUBLIC-RELEASE.md). Supabase Edge Functions run the OAuth service and PostgreSQL stores encrypted credentials and save records. Users need no local service, Supabase account, or integration keys. `npm run build:public` creates a separate HTTPS package in `dist-public`; the local pilot remains available below.
 
+Version 0.1.3 adds optional, default-off PostHog usage sharing. It sends manually defined feature events and save outcomes under a random installation ID, without bookmark details or Notion content. Activation is pending selection of a dedicated PostHog organization/project; see [analytics setup and measurement definitions](docs/ANALYTICS.md). The saved Web Store draft is still 0.1.2. Do not distribute 0.1.3 until analytics, the published privacy policy, and store disclosures are verified together.
+
 ## Run the private pilot
 
 Requires Node.js 24 or newer, npm, desktop Chrome, and a Notion workspace.
