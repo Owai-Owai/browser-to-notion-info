@@ -1,0 +1,48 @@
+# One persistent service for the initial public release. This uses paid resources.
+services:
+  - type: web
+    name: browser-to-notion
+    runtime: node
+    plan: starter
+    numInstances: 1
+    autoDeploy: false
+    buildCommand: npm ci --include=dev && npm run build:service
+    startCommand: node build-service/index.mjs
+    healthCheckPath: /healthz
+    disk:
+      name: bookmark-sync-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "24.22.1"
+      - key: NODE_ENV
+        value: production
+      - key: SERVICE_MODE
+        value: hosted
+      - key: PORT
+        value: "10000"
+      - key: DATA_DIRECTORY
+        value: /var/data
+      - key: TRUST_PROXY
+        value: "true"
+      - key: CLIENT_IP_HEADER
+        value: cf-connecting-ip
+      - key: BACKUP_RETENTION_DAYS
+        value: "7"
+      - key: SERVICE_PUBLIC_URL
+        sync: false
+      - key: NOTION_REDIRECT_URI
+        sync: false
+      - key: NOTION_CLIENT_ID
+        sync: false
+      - key: NOTION_CLIENT_SECRET
+        sync: false
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: ALLOWED_EXTENSION_ID
+        sync: false
+      - key: PUBLISHER_NAME
+        sync: false
+      - key: SUPPORT_EMAIL
+        sync: false

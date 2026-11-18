@@ -1,0 +1,7 @@
+project_id = "browser-to-notion"
+
+[functions.notion-sync]
+# Notion redirects and our PKCE/session protocol do not carry Supabase Auth JWTs.
+# The handler authenticates every private API route itself.
+verify_jwt = false
+entrypoint = "./functions/notion-sync/dist/index.js"

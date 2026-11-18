@@ -1,0 +1,24 @@
+import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import assert from "node:assert/strict";
+import { serviceBaseUrl } from "../shared/service-url.ts";
+
+const verified = spawnSync(process.execPath, ["scripts/verify-package.mjs", "dist-public", "--public"], { stdio: "inherit" });
+if (verified.status !== 0) process.exit(verified.status || 1);
+const manifest = JSON.parse(readFileSync("dist-public/manifest.json", "utf8"));
+const connection = JSON.parse(readFileSync("dist-public/connection.json", "utf8"));
+const origin = serviceBaseUrl(connection.serviceUrl,true);
+assert.deepEqual(manifest.host_permissions,[`${new URL(origin).origin}/*`]);
+const id = [...createHash("sha256").update(Buffer.from(manifest.key, "base64")).digest().subarray(0, 16)].map(byte => String.fromCharCode(97 + (byte >> 4), 97 + (byte & 15))).join("");
+const health = await fetch(`${origin}/healthz`, { signal: AbortSignal.timeout(15_000) });
+assert.ok(health.ok, "The hosted service must be healthy before packaging for public use.");
+const status = await health.json();
+assert.equal(status.ok, true);
+assert.equal(status.mode, "hosted");
+assert.equal(status.extensionId, id, "The deployed service must authorize the public extension's actual ID.");
+if (status.privacyUrl) assert.equal(status.privacyUrl,connection.privacyUrl,"The service and extension must link to the same published privacy policy.");
+const privacy = await fetch(connection.privacyUrl, { signal: AbortSignal.timeout(15_000) });
+assert.ok(privacy.ok && privacy.headers.get("content-type")?.includes("text/html"), "Publish the privacy policy before release.");
+assert.match(await privacy.text(), /mailto:/, "The published policy needs a support contact.");
+console.info("Verified public assets, live service, matching extension ID, and published privacy policy.");
