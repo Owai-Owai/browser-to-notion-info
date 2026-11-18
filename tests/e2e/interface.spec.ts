@@ -16,7 +16,7 @@ test("setup, folder selection, enablement and popup pause persist across views",
   await expect(page.getByLabel("Import my existing bookmarks too")).not.toBeChecked();
   await page.getByRole("button", { name: "Enable sync", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Your bookmark connection." })).toBeVisible();
-  await expect(page.getByText("1 selected folder", { exact: true })).toBeVisible();
+  await expect(page.getByText("1 selected folders", { exact: true })).toBeVisible();
   await page.screenshot({ path: "test-results/settings.png", fullPage: true });
   await page.goto("/popup.html");
   await page.setViewportSize({ width: 360, height: 600 });

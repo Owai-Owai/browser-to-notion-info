@@ -15,7 +15,6 @@ import { isOriginalTemplateLink } from "../../shared/notion-template";
 import { BusyLabel, ErrorMessage } from "./common";
 import { useCommand } from "../lib/queries";
 import { request } from "../lib/bridge";
-import { UsageSharing } from "./usage-sharing";
 
 const steps = ["Connect", "Destination", "Folders", "Review"];
 
@@ -82,7 +81,6 @@ export function Setup({ state, finish }: { state: AppState; finish: () => void }
         {draft.importExisting && <div className="rounded-lg border p-4">{previewValue ? <div className="space-y-2 text-sm"><p className="font-medium">{previewValue.toSave} new websites to save</p><p className="text-muted-foreground">{previewValue.alreadyPresent} already present or repeated · {previewValue.unsupported} unsupported</p></div> : <Button variant="outline" disabled={busy || !parsed.success} onClick={() => void run(async () => { if (parsed.success) setPreview({ key: previewKey, value: await request<ImportPreview>({ type: "preview", scope: draft.scope, destination: parsed.data }) }); })}>{busy ? <BusyLabel>Checking existing bookmarks…</BusyLabel> : "Preview import"}</Button>}</div>}
         {destinationChanged && pending.length > 0 && <div className="space-y-3 rounded-lg border border-warning p-4 text-sm"><p>{pending.length} pending bookmarks belong to your previous destination. Finish them first, or discard their unsent work.</p><div className="flex items-center gap-2"><Checkbox id="discard-pending" checked={discardPending} onCheckedChange={value => setDiscardPending(value === true)}/><Label htmlFor="discard-pending">Discard pending work</Label></div></div>}
         <p className="text-xs leading-relaxed text-muted-foreground">This saves a snapshot of each bookmark. Later edits and deletions in Chrome won't change entries already saved in Notion.</p>
-        <UsageSharing state={state}/>
       </>}
       <ErrorMessage error={error}/>
       {error && useTemplate && draft.step === 1 && <Button variant="outline" size="sm" disabled={busy} onClick={() => void run(async () => { await action.mutateAsync({ type: "connect" }); })}>Refresh Notion access</Button>}

@@ -1,14 +1,5 @@
 # Build validation
 
-## GitHub and optional analytics — 18 November 2026
-
-- Preserved the existing GitHub Pages history and pushed the working 0.1.2 application source to `main` in `Owai-Owai/browser-to-notion-info` (commit `3aa74ca`). Optional analytics is prepared separately on `codex/github-analytics`. Private environment files, build output, local screenshots, and research image downloads are excluded. The source scanner checks known local credential values and token patterns before commits.
-- Prepared 0.1.3 with default-off opt-in controls, a finite content-free event schema, a bounded retry queue, and authenticated Supabase forwarding. A service-only migration caps analytics traffic per connection. Analytics does not block bookmark saving.
-- Fixed disconnect clearing optional connection/destination fields as part of the new consent-reset check.
-- PostHog project creation and live analytics remain pending: the connected organization permits one project and already has one. No existing project was changed. See [ANALYTICS.md](ANALYTICS.md) for activation and proposed metric definitions.
-- The owner confirmed the previous 0.1.2 package and listing are saved in the unpublished store draft. Version 0.1.3 requires a new package and updated privacy disclosures before release.
-- Validation: 68 logic/HTTP/PostgreSQL tests passed. Eight browser scenarios passed in the full run; the remaining scenario passed after correcting its stale plural-folder assertion. The installed public package passed default-off, opt-in, opt-out and content-free-payload checks with intercepted service requests. Type checking, lint, public/service/Supabase builds, Deno check, and the 125-file source scan passed. No live PostHog ingestion or dashboard verification has occurred. The hosted service and published privacy page were not changed for analytics; the revised root privacy file is part of the analytics draft.
-
 ## Final listing preparation — 18 November 2026
 
 - The owner confirmed version 0.1.1 was accepted in the existing draft and that a new bookmark saved using ID `aneibajfligcbdfodclcfelpgcenmojk`. The last saved-operation timestamp was later than the store-ID function deployment, independently corroborating the hosted test without reading bookmark details or tokens.

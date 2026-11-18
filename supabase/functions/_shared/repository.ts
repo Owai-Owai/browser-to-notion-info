@@ -30,8 +30,8 @@ export async function rpc<T>(repository: Repository, action: string, payload: Re
 
 /** Only this server-side adapter knows the Supabase service-role credential. */
 export function postgresRepository(url: string, serviceKey: string, transport: typeof fetch = fetch): Repository {
+  const endpoint = `${new URL(url).origin}/rest/v1/rpc/bns_service`;
   return { async call(action,payload) {
-    const endpoint = `${new URL(url).origin}/rest/v1/rpc/${action === "analytics_allow" ? "bns_analytics_allow" : "bns_service"}`;
     let response: Response;
     try {
       response = await transport(endpoint, { method: "POST", headers: { apikey: serviceKey,...(serviceKey.startsWith("sb_secret_") ? {} : { Authorization: `Bearer ${serviceKey}` }), "Content-Type": "application/json" }, body: JSON.stringify({ p_action: action,p_payload: payload }), signal: AbortSignal.timeout(12_000) });

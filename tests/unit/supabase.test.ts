@@ -66,41 +66,6 @@ async function connect(existing?: string,code?: string) {
 const request = (): SyncRequest => ({ operationId: crypto.randomUUID(),bookmark: { id: "bookmark",title: "Resource",url: "https://example.com/article",folderPath: "Reading",dateAdded: 123 },destination });
 
 describe("Supabase migration and service",() => {
-  it("authenticates analytics, rejects content, and forwards only the finite consented vocabulary", async () => {
-    const token = await connect();
-    const requests: { url: string; body: unknown; headers: Headers }[] = [];
-    const analytics = createHandler({ ...config, posthogToken: "test-project-capture-token" }, fixture.repository, async (url,init) => {
-      requests.push({ url: String(url), body: JSON.parse(String(init?.body)), headers: new Headers(init?.headers) });
-      return Response.json({ status: "Ok" });
-    });
-    const input = { consent: true, installationId: crypto.randomUUID(), events: [{ id: crypto.randomUUID(), timestamp: new Date().toISOString(), data: { event: "bns_usage_enabled", properties: { version: "0.1.3" } } }] };
-    expect((await post("/v1/analytics",input,undefined,analytics)).status).toBe(401);
-    expect((await post("/v1/analytics",{ ...input,consent: false },token,analytics)).status).toBe(400);
-    expect((await post("/v1/analytics",{ ...input,url: "https://private.example" },token,analytics)).status).toBe(400);
-    expect((await post("/v1/analytics",{ ...input,events: [{ ...input.events[0],data: { event: "bns_usage_enabled",properties: { version: "0.1.3",title: "Private title" } } }] },token,analytics)).status).toBe(400);
-    expect(requests).toHaveLength(0);
-    expect((await post("/v1/analytics",input,token,analytics)).status).toBe(200);
-    expect(requests[0].url).toBe("https://us.i.posthog.com/batch/");
-    expect(requests[0].headers.has("authorization")).toBe(false);
-    expect(requests[0].headers.has("x-forwarded-for")).toBe(false);
-    expect(requests[0].body).toEqual({ api_key: "test-project-capture-token",batch: [{ event: "bns_usage_enabled",uuid: input.events[0].id,timestamp: input.events[0].timestamp,properties: { version: "0.1.3",distinct_id: input.installationId,$process_person_profile: false,$geoip_disable: true,$ip: null } }] });
-    expect(JSON.stringify(requests[0].body)).not.toContain(token);
-  });
-  it("enforces a durable analytics rate limit and keeps the new RPC private", async () => {
-    const token = await connect();
-    const connection = await rpc(fixture.repository,"authenticate",{ session_hash: await hash(token) },connectionSchema);
-    for (let i=0;i<40;i++) expect(await fixture.repository.call("analytics_allow",{ owner: connection.id,count: 25 })).toEqual({ ok: true });
-    expect(await fixture.repository.call("analytics_allow",{ owner: connection.id,count: 1 })).toEqual({ code: "rate_limit" });
-    await fixture.database.exec("update bns_private.usage_limits set expires=now()-interval '1 second'");
-    expect(await fixture.repository.call("analytics_allow",{ owner: connection.id,count: 1 })).toEqual({ ok: true });
-    for (const role of ["anon","authenticated"]) {
-      await fixture.database.exec(`set role ${role}`);
-      try { await expect(fixture.repository.call("analytics_allow",{ owner: connection.id,count: 1 })).rejects.toThrow(/permission denied/); }
-      finally { await fixture.database.exec("reset role"); }
-    }
-    await post("/v1/disconnect",{},token);
-    expect((await fixture.database.query("select * from bns_private.usage_limits")).rows).toEqual([]);
-  });
   it("uses the injected modern secret key on apikey without treating it as a JWT",async () => {
     const modern=edgeConfig({ SUPABASE_URL: config.projectUrl,SUPABASE_SECRET_KEYS: JSON.stringify({ default: "sb_secret_test_server_only" }),SERVICE_PUBLIC_URL: config.serviceUrl,PRIVACY_URL: config.privacyUrl,NOTION_CLIENT_ID: config.notionClientId,NOTION_CLIENT_SECRET: config.notionClientSecret,TOKEN_ENCRYPTION_KEY: config.encryptionKey,ALLOWED_EXTENSION_ID: config.extensionId,PUBLISHER_NAME: config.publisherName,SUPPORT_EMAIL: config.supportEmail });
     const adapter=postgresRepository(modern.projectUrl,modern.serviceKey,async (_input,init) => {

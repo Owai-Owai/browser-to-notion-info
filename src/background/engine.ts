@@ -3,8 +3,6 @@ import { configuredDestinationSchema, destinationSchema, initialState, pendingSt
 import { flattenBookmarks, folderTree, normalizeUrl } from "../lib/bookmarks";
 import { asFailure, connectNotion, serviceRequest } from "./service";
 import { readState, updateState } from "./store";
-import { stopUsageRequest, usageEvent } from "./analytics";
-import { usageSupported } from "../lib/service-config";
 
 let pumping = false;
 const active = (state: AppState) => state.jobs.filter(job => pendingStatuses.includes(job.status) || job.status === "attention");
@@ -76,7 +74,6 @@ export async function pump() {
           const item = state.jobs.find(item => item.id === job.id);
           if (item) { item.result = result; item.status = result.status; item.error = undefined; item.updatedAt = Date.now(); }
           state.lastError = undefined;
-          usageEvent(state, "bns_bookmark_saved", { source: job.batchId ? "import" : "automatic", result: result.status });
         });
       } catch (error) {
         const failure = asFailure(error);
@@ -87,8 +84,6 @@ export async function pump() {
           item.status = failure.code === "uncertain" ? "checking" : retryable && item.attempts < 8 ? "retry" : "attention";
           item.error = failure; item.updatedAt = Date.now();
           item.retryAt = Date.now() + Math.max((failure.retryAfter ?? 0) * 1000, Math.min(3600_000, 30_000 * 2 ** Math.min(item.attempts - 1, 6)) + Math.random() * 5000);
-          // One failure event per job, not one per retry attempt.
-          if (item.attempts === 1) usageEvent(state, "bns_save_failed", { category: ["offline", "auth", "rate_limit", "schema", "destination", "uncertain", "temporary"].includes(failure.code) ? failure.code : "other" });
         });
         if (["offline", "auth", "rate_limit", "temporary", "busy"].includes(failure.code)) break;
       }
@@ -109,19 +104,6 @@ export async function handleCommand(command: Command): Promise<unknown> {
       return { ...state, ...(typeof workerError === "string" ? { lastError: workerError } : {}) };
     }
     case "folders": return folderTree(await chrome.bookmarks.getTree());
-    case "usage": {
-      if (command.enabled && !usageSupported) throw new Error("Usage sharing is available in the hosted version.");
-      if (!command.enabled) stopUsageRequest();
-      return updateState(state => {
-        if (state.usage.enabled === command.enabled) return;
-        state.usage.enabled = command.enabled;
-        state.usage.queue = []; state.usage.nextAttemptAt = 0;
-        if (command.enabled) {
-          state.usage.installationId ??= crypto.randomUUID();
-          usageEvent(state, "bns_usage_enabled");
-        }
-      });
-    }
     case "clearHistory": return updateState(state => { state.jobs = state.jobs.filter(job => !terminalStatuses.includes(job.status)); });
     case "draft": return updateState(state => { state.draft = command.draft; });
     case "connect": {
@@ -139,10 +121,9 @@ export async function handleCommand(command: Command): Promise<unknown> {
       return connection;
     }
     case "disconnect": {
-      stopUsageRequest();
       const state = await readState();
       if (state.connection) await serviceRequest("/v1/disconnect", {}, z.object({ ok: z.boolean() }), state.connection);
-      await updateState(state => { Object.assign(state, initialState()); state.connection = undefined; state.destination = undefined; state.lastError = undefined; });
+      await updateState(state => Object.assign(state, initialState()));
       await updateBadge(); return;
     }
     case "resolve": {
@@ -179,13 +160,10 @@ export async function handleCommand(command: Command): Promise<unknown> {
           });
         }
         const batchId = crypto.randomUUID();
-        const firstSetup = !state.enabled;
         state.destination = destination; state.scope = command.scope; state.enabled = true;
         state.baseline = Object.fromEntries(flattenBookmarks(tree, command.scope).map(item => [item.bookmark.id, item.eligible]));
         state.draft.step = 4; state.lastError = undefined;
         if (command.importExisting) flattenBookmarks(tree, command.scope).filter(item => item.eligible).forEach(item => enqueue(state, item.bookmark, destination, batchId));
-        usageEvent(state, "bns_sync_enabled", { firstSetup });
-        if (command.importExisting) usageEvent(state, "bns_import_started");
       });
       return;
     }
@@ -195,14 +173,10 @@ export async function handleCommand(command: Command): Promise<unknown> {
         if (!state.destination || !state.connection) throw new Error("Finish setup first.");
         const batchId = crypto.randomUUID();
         flattenBookmarks(tree, command.scope).filter(item => item.eligible).forEach(item => enqueue(state, item.bookmark, state.destination!, batchId, command.scope));
-        usageEvent(state, "bns_import_started");
         return batchId;
       });
     }
-    case "pause": return updateState(state => {
-      if (state.paused !== command.paused) usageEvent(state, command.paused ? "bns_sync_paused" : "bns_sync_resumed");
-      state.paused = command.paused;
-    });
+    case "pause": return updateState(state => { state.paused = command.paused; });
     case "retry": return updateState(state => {
       state.jobs.filter(job => (!command.id || job.id === command.id) && ["attention", "retry", "checking"].includes(job.status)).forEach(job => { job.status = "queued"; job.retryAt = Date.now(); job.attempts = 0; });
     });

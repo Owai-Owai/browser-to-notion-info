@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { usageStateSchema } from "./analytics.ts";
 
 export const propertySchema = z.object({
   id: z.string(), name: z.string(), type: z.string(),
@@ -55,7 +54,6 @@ export const appStateSchema = z.object({
   baseline: z.record(z.string(), z.boolean()), jobs: z.array(jobSchema),
   draft: draftSchema, lastReconciledAt: z.number(),
   lastError: z.string().optional(),
-  usage: usageStateSchema,
 });
 export type Property = z.infer<typeof propertySchema>;
 export type Mapping = z.infer<typeof mappingSchema>;
@@ -74,7 +72,6 @@ export type Failure = z.infer<typeof failureSchema>;
 export const initialState = (): AppState => ({
   version: 1, scope: { mode: "selected", folderIds: [] }, enabled: false, paused: false,
   baseline: {}, jobs: [], draft: draftSchema.parse({ setupMethod: "template" }), lastReconciledAt: 0,
-  usage: usageStateSchema.parse(undefined),
 });
 export const pendingStatuses: Job["status"][] = ["queued", "saving", "retry", "checking"];
 export const terminalStatuses: Job["status"][] = ["saved", "duplicate", "skipped", "cancelled"];
@@ -85,7 +82,6 @@ export const commandSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("connect") }),
   z.object({ type: z.literal("disconnect") }),
   z.object({ type: z.literal("clearHistory") }),
-  z.object({ type: z.literal("usage"), enabled: z.boolean() }),
   z.object({ type: z.literal("draft"), draft: draftSchema }),
   z.object({ type: z.literal("resolve"), link: z.string() }),
   z.object({ type: z.literal("preview"), scope: scopeSchema, destination: configuredDestinationSchema }),

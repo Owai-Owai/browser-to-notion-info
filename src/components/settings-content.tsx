@@ -7,7 +7,6 @@ import { FolderPicker } from "./folder-picker";
 import { BusyLabel, ErrorMessage } from "./common";
 import { openExternal, request } from "../lib/bridge";
 import { useCommand } from "../lib/queries";
-import { UsageSharing } from "./usage-sharing";
 
 export function SettingsContent({ state, navigate }: { state: AppState; navigate: (route: string) => void }) {
   const action = useCommand();
@@ -27,7 +26,6 @@ export function SettingsContent({ state, navigate }: { state: AppState; navigate
     </section>
     <section className="quiet-panel"><div className="flex flex-wrap items-start justify-between gap-4"><div><h2 className="text-sm font-medium">Bring your existing bookmarks</h2><p className="mt-1 max-w-sm field-help">Review a folder collection and save the websites you've already gathered.</p></div><Button variant="outline" size="sm" onClick={() => setShowImport(!showImport)} aria-expanded={showImport}><Download className="size-3.5"/>Import bookmarks</Button></div>{showImport && <div className="mt-6 border-t pt-6"><ImportPanel state={state} complete={() => navigate("activity")}/></div>}</section>
     <div className="flex flex-wrap items-start justify-between gap-4"><p className="max-w-md text-xs leading-relaxed text-muted-foreground">Sync saves bookmark snapshots. Changes or deletions after a successful save won't change your Notion entries.</p><Button variant="outline" size="sm" disabled={action.isPending} onClick={() => action.mutate({ type: "pause", paused: !state.paused })}>{state.paused ? "Resume sync" : "Pause sync"}</Button></div>
-    <UsageSharing state={state}/>
     <ErrorMessage error={action.error}/>
     <div className="space-y-3 border-t pt-5"><details><summary className="w-fit text-xs text-muted-foreground">Activity history</summary><p className="mt-3 text-xs leading-relaxed text-muted-foreground">Clearing completed history frees local space. Pending and failed work is preserved; entries in Notion stay there.</p><Button variant="outline" size="sm" className="mt-3" disabled={action.isPending} onClick={() => action.mutate({ type: "clearHistory" })}>Clear completed history</Button></details><AlertDialog><AlertDialogTrigger asChild><Button variant="ghost" size="sm" className="px-0 text-muted-foreground"><Unplug className="size-3.5"/>Disconnect and delete extension data</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Disconnect from Notion?</AlertDialogTitle><AlertDialogDescription>This removes your connection credentials, settings, and unsent bookmarks. Entries already saved in Notion stay there. A working connection is needed to finish deleting service records.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Keep connection</AlertDialogCancel><AlertDialogAction onClick={() => action.mutate({ type: "disconnect" })}>Disconnect</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog></div>
   </main>;
